@@ -157,4 +157,5 @@ app.get("/user-playlists", (req, res) => {
       res.status(500).send("Fehler bei der Anfrage an Spotify");
     });
 });
+
 app.listen(PORT, console.log(`APP GESTARTET AUF PORT ${PORT}`));
