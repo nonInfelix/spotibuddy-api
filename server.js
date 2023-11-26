@@ -95,7 +95,7 @@ app.get("/callback", (req, res) => {
         console.log(response.data);
         //------------GET SINGLE TOKENS-------
         const { access_token, refresh_token, expires_in } = response.data;
-        const redirectUrl = "http://localhost:4200";
+        const redirectUrl = "http://localhost:4200/?log=1";
 
         res.cookie("access_token", access_token, {
           httpOnly: true,
