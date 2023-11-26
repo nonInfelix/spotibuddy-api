@@ -53,7 +53,8 @@ app.get("/auth", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  let scope = "user-read-private user-read-email";
+  let scope =
+    "user-read-private user-read-email playlist-read-private playlist-read-collaborative";
   let state = generateRandomString(16);
   res.cookie(stateKey, state);
 
@@ -123,6 +124,28 @@ app.get("/user-profile", (req, res) => {
 
   axios
     .get("https://api.spotify.com/v1/me", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    })
+    .then((response) => {
+      res.send(response.data);
+    })
+    .catch((error) => {
+      res.status(500).send("Fehler bei der Anfrage an Spotify");
+    });
+});
+
+app.get("/user-playlists", (req, res) => {
+  const accessToken = req.cookies.access_token;
+  if (!accessToken) {
+    return res
+      .status(401)
+      .send("Zugriff verweigert: Kein Access Token gefunden.");
+  }
+
+  axios
+    .get("https://api.spotify.com/v1/me/playlists?limit=50", {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
