@@ -145,7 +145,7 @@ app.get("/user-playlists", (req, res) => {
   }
 
   axios
-    .get("https://api.spotify.com/v1/me/playlists?limit=50", {
+    .get("https://api.spotify.com/v1/me/playlists?offset=50&limit=50", {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
@@ -155,6 +155,31 @@ app.get("/user-playlists", (req, res) => {
     })
     .catch((error) => {
       res.status(500).send("Fehler bei der Anfrage an Spotify");
+    });
+});
+
+app.get("/load-more-playlists", (req, res) => {
+  const offset = req.query.offset || 0;
+  const accessToken = req.cookies.access_token;
+  if (!accessToken) {
+    return res
+      .status(401)
+      .send("Zugriff verweigert: Kein Access Token gefunden.");
+  }
+
+  axios
+    .get(`https://api.spotify.com/v1/me/playlists?offset=${offset}&limit=50`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    })
+    .then((response) => {
+      res.send(response.data);
+    })
+    .catch((error) => {
+      res
+        .status(500)
+        .send(error.message || "Fehler bei der Anfrage an Spotify");
     });
 });
 
