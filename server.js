@@ -7,6 +7,7 @@ const app = express();
 const querystring = require("querystring"); //for url
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const { google } = require("googleapis");
 app.use(cookieParser()); // express kann nun mit cookies umgehen
 app.use(express.static(__dirname + "/public")); // serve static files in public
 app.use(cors({ origin: "http://localhost:4200", credentials: true })); // enable cors
@@ -31,6 +32,10 @@ const PORT = process.env.PORT;
 const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const REDIRECT_URI = process.env.REDIRECT_URI;
+
+const YT_CLIENT_ID = process.env.YT_CLIENT_ID;
+const YT_CLIENT_SECRET = process.env.YT_CLIENT_SECRET;
+const YT_REDIRECT_URI = process.env.YT_REDIRECT_URI;
 
 //------------LOG----------------------------
 console.log(
@@ -181,6 +186,52 @@ app.get("/load-more-playlists", (req, res) => {
         .status(500)
         .send(error.message || "Fehler bei der Anfrage an Spotify");
     });
+});
+
+//--------------GOOGLE---------------
+
+const oauth2Client = new google.auth.OAuth2(
+  YT_CLIENT_ID,
+  YT_CLIENT_SECRET,
+  YT_REDIRECT_URI
+);
+
+// generate a url that asks permissions for Blogger and Google Calendar scopes
+const scopes = [
+  "https://www.googleapis.com/auth/youtube",
+  "https://www.googleapis.com/auth/youtubepartner",
+  "https://www.googleapis.com/auth/youtube.force-ssl",
+];
+
+const googleURL = oauth2Client.generateAuthUrl({
+  // 'online' (default) or 'offline' (gets refresh_token)
+  access_type: "offline",
+
+  // If you only need one scope you can pass it as a string
+  scope: scopes,
+});
+
+app.get("/google-auth", (req, res) => {
+  res.redirect(googleURL);
+});
+
+app.get("/google/callback", async (req, res) => {
+  const code = req.query.code;
+
+  //token erhalten
+  const { tokens } = await oauth2Client.getToken(code);
+  oauth2Client.setCredentials(tokens);
+
+  res.cookie("yt_access_token", tokens.access_token, {
+    httpOnly: true,
+    expires: new Date(tokens.expiry_date),
+  });
+
+  res.cookie("yt_refresh_token", tokens.refresh_token, {
+    httpOnly: true,
+    expires: new Date(tokens.expiry_date),
+  });
+  res.redirect("http://localhost:4200?log=1");
 });
 
 app.listen(PORT, console.log(`APP GESTARTET AUF PORT ${PORT}`));
