@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+
 const dotenv = require("dotenv");
 dotenv.config();
 
@@ -8,6 +9,8 @@ const querystring = require("querystring"); //for url
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const { google } = require("googleapis");
+
+//-----------------------
 app.use(cookieParser()); // express kann nun mit cookies umgehen
 app.use(express.static(__dirname + "/public")); // serve static files in public
 app.use(cors({ origin: "http://localhost:4200", credentials: true })); // enable cors
@@ -27,6 +30,8 @@ const generateRandomString = function (length) {
 };
 //------------STATE KEY FOR COOKIE---------------------------
 const stateKey = "spotify_auth";
+//---------------VARIABLES-----------------------------
+const tracks = [];
 //-----------ENV VARIABLES-----------------------------
 const PORT = process.env.PORT;
 const CLIENT_ID = process.env.CLIENT_ID;
@@ -100,7 +105,7 @@ app.get("/callback", (req, res) => {
         console.log(response.data);
         //------------GET SINGLE TOKENS-------
         const { access_token, refresh_token, expires_in } = response.data;
-        const redirectUrl = "http://localhost:4200/?log=1";
+        const redirectUrl = "http://localhost:4200/playlist?log=1";
 
         res.cookie("access_token", access_token, {
           httpOnly: true,
@@ -188,6 +193,43 @@ app.get("/load-more-playlists", (req, res) => {
     });
 });
 
+app.get("/playlist-tracks", async (req, res) => {
+  const id = req.query.id;
+  const accessToken = req.cookies.access_token;
+  let url = `https://api.spotify.com/v1/playlists/${id}/tracks`;
+  let tracks = [];
+
+  try {
+    while (url) {
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      modifiedTracks = response.data.items.map((obj) => {
+        return {
+          id: obj.track.id,
+          artists: obj.track.artists.map((artist) => {
+            return artist.name;
+          }),
+          name: obj.track.name,
+          duration: obj.track.duration_ms,
+        };
+      });
+
+      tracks.push(...modifiedTracks);
+
+      // Setzt die URL auf die nächste Seite, falls vorhanden
+      url = response.data.next;
+    }
+
+    res.send(tracks);
+  } catch (error) {
+    res.status(500).send(error.message || "Fehler bei der Anfrage an Spotify");
+  }
+});
+
 //--------------GOOGLE---------------
 
 const oauth2Client = new google.auth.OAuth2(
@@ -216,22 +258,53 @@ app.get("/google-auth", (req, res) => {
 });
 
 app.get("/google/callback", async (req, res) => {
-  const code = req.query.code;
+  try {
+    const code = req.query.code;
 
-  //token erhalten
-  const { tokens } = await oauth2Client.getToken(code);
-  oauth2Client.setCredentials(tokens);
+    // Tokens erhalten und setzen
+    const { tokens } = await oauth2Client.getToken(code);
+    oauth2Client.setCredentials(tokens);
 
-  res.cookie("yt_access_token", tokens.access_token, {
-    httpOnly: true,
-    expires: new Date(tokens.expiry_date),
-  });
+    // YouTube API Client initialisieren
+    const youtube = google.youtube({
+      version: "v3",
+      auth: oauth2Client,
+    });
 
-  res.cookie("yt_refresh_token", tokens.refresh_token, {
-    httpOnly: true,
-    expires: new Date(tokens.expiry_date),
-  });
-  res.redirect("http://localhost:4200?log=1");
+    // Playlist erstellen
+    const response = await youtube.playlists.insert({
+      part: "snippet,status",
+      requestBody: {
+        snippet: {
+          title: "spotitube" + generateRandomString(8),
+          description: "konvertierte Playlist von Spotify",
+        },
+        status: {
+          privacyStatus: "private", // Kann 'public', 'private' oder 'unlisted' sein
+        },
+      },
+    });
+    //suchen von Tracks auf youtube -> ID
+    for (let i = 0; i < tracks.length; i++) {
+      const video = youtube.search.list({
+        part: "snippet,",
+        requestBody: {
+          snippet: {
+            title: tracks[i].title + " " + tracks[i].interpret,
+          },
+        },
+      });
+      console.log(video);
+    }
+
+    //insert video in playlist
+
+    res.send(`Playlist erstellt: ${response.data.id}`);
+  } catch (error) {
+    // Fehlerbehandlung
+    console.error("Fehler beim Erstellen der Playlist:", error);
+    res.status(500).send("Fehler beim Erstellen der Playlist");
+  }
 });
 
 app.listen(PORT, console.log(`APP GESTARTET AUF PORT ${PORT}`));
