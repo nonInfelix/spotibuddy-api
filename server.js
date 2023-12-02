@@ -197,7 +197,6 @@ app.get("/playlist-tracks", async (req, res) => {
   const id = req.query.id;
   const accessToken = req.cookies.access_token;
   let url = `https://api.spotify.com/v1/playlists/${id}/tracks`;
-  let tracks = [];
 
   try {
     while (url) {
@@ -223,7 +222,7 @@ app.get("/playlist-tracks", async (req, res) => {
       // Setzt die URL auf die nächste Seite, falls vorhanden
       url = response.data.next;
     }
-
+    console.log(tracks);
     res.send(tracks);
   } catch (error) {
     res.status(500).send(error.message || "Fehler bei der Anfrage an Spotify");
@@ -238,7 +237,6 @@ const oauth2Client = new google.auth.OAuth2(
   YT_REDIRECT_URI
 );
 
-// generate a url that asks permissions for Blogger and Google Calendar scopes
 const scopes = [
   "https://www.googleapis.com/auth/youtube",
   "https://www.googleapis.com/auth/youtubepartner",
@@ -248,8 +246,6 @@ const scopes = [
 const googleURL = oauth2Client.generateAuthUrl({
   // 'online' (default) or 'offline' (gets refresh_token)
   access_type: "offline",
-
-  // If you only need one scope you can pass it as a string
   scope: scopes,
 });
 
@@ -258,6 +254,9 @@ app.get("/google-auth", (req, res) => {
 });
 
 app.get("/google/callback", async (req, res) => {
+  //Limit für Suchanfragen( wg. Kontingente)
+  let queryLimit = 25;
+  let queryCount = 0;
   try {
     const code = req.query.code;
 
@@ -272,11 +271,11 @@ app.get("/google/callback", async (req, res) => {
     });
 
     // Playlist erstellen
-    const response = await youtube.playlists.insert({
+    const playlist = await youtube.playlists.insert({
       part: "snippet,status",
       requestBody: {
         snippet: {
-          title: "spotitube" + generateRandomString(8),
+          title: "spotitubetest1",
           description: "konvertierte Playlist von Spotify",
         },
         status: {
@@ -284,22 +283,38 @@ app.get("/google/callback", async (req, res) => {
         },
       },
     });
+
     //suchen von Tracks auf youtube -> ID
-    for (let i = 0; i < tracks.length; i++) {
-      const video = youtube.search.list({
-        part: "snippet,",
-        requestBody: {
-          snippet: {
-            title: tracks[i].title + " " + tracks[i].interpret,
-          },
-        },
+    for (let i = 0; i < tracks.length && queryCount <= queryLimit; i++) {
+      const search = tracks[i].name + " " + tracks[i].artists[0];
+
+      const searchResponse = await youtube.search.list({
+        part: "snippet",
+        q: search,
+        maxResults: 1,
       });
-      console.log(video);
+
+      if (searchResponse.data.items.length > 0) {
+        const videoId = searchResponse.data.items[0].id.videoId;
+
+        // Video zur Playlist hinzufügen
+        await youtube.playlistItems.insert({
+          part: "snippet",
+          requestBody: {
+            snippet: {
+              playlistId: playlist.data.id,
+              resourceId: {
+                kind: "youtube#video",
+                videoId: videoId,
+              },
+            },
+          },
+        });
+      }
+      queryCount++;
     }
 
-    //insert video in playlist
-
-    res.send(`Playlist erstellt: ${response.data.id}`);
+    res.send(`Playlist erstellt: ${playlist.data}`);
   } catch (error) {
     // Fehlerbehandlung
     console.error("Fehler beim Erstellen der Playlist:", error);
