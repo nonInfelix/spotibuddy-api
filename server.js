@@ -275,8 +275,8 @@ app.get("/google/callback", async (req, res) => {
       part: "snippet,status",
       requestBody: {
         snippet: {
-          title: "spotitubetest1",
-          description: "konvertierte Playlist von Spotify",
+          title: "spotify-converter" + " " + generateRandomString(10),
+          description: "konvertierte Playlist von Spotify-Converter",
         },
         status: {
           privacyStatus: "private", // Kann 'public', 'private' oder 'unlisted' sein
@@ -314,7 +314,7 @@ app.get("/google/callback", async (req, res) => {
       queryCount++;
     }
 
-    res.send(`Playlist erstellt: ${playlist.data}`);
+    res.redirect("http://localhost:4200");
   } catch (error) {
     // Fehlerbehandlung
     console.error("Fehler beim Erstellen der Playlist:", error);
