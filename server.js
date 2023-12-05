@@ -31,7 +31,7 @@ const generateRandomString = function (length) {
 //------------STATE KEY FOR COOKIE---------------------------
 const stateKey = "spotify_auth";
 //---------------VARIABLES-----------------------------
-const tracks = [];
+let tracks = [];
 //-----------ENV VARIABLES-----------------------------
 const PORT = process.env.PORT;
 const CLIENT_ID = process.env.CLIENT_ID;
@@ -197,7 +197,7 @@ app.get("/playlist-tracks", async (req, res) => {
   const id = req.query.id;
   const accessToken = req.cookies.access_token;
   let url = `https://api.spotify.com/v1/playlists/${id}/tracks`;
-
+  tracks = [];
   try {
     while (url) {
       const response = await axios.get(url, {
@@ -255,7 +255,7 @@ app.get("/google-auth", (req, res) => {
 
 app.get("/google/callback", async (req, res) => {
   //Limit für Suchanfragen( wg. Kontingente)
-  let queryLimit = 25;
+  let queryLimit = 2;
   let queryCount = 0;
   try {
     const code = req.query.code;
