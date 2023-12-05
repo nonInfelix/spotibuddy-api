@@ -205,7 +205,6 @@ app.get("/playlist-tracks", async (req, res) => {
           Authorization: `Bearer ${accessToken}`,
         },
       });
-
       modifiedTracks = response.data.items.map((obj) => {
         return {
           id: obj.track.id,
@@ -222,7 +221,6 @@ app.get("/playlist-tracks", async (req, res) => {
       // Setzt die URL auf die nächste Seite, falls vorhanden
       url = response.data.next;
     }
-    console.log(tracks);
     res.send(tracks);
   } catch (error) {
     res.status(500).send(error.message || "Fehler bei der Anfrage an Spotify");
@@ -314,7 +312,7 @@ app.get("/google/callback", async (req, res) => {
       queryCount++;
     }
 
-    res.redirect("http://localhost:4200");
+    res.redirect("http://localhost:4200/confirm");
   } catch (error) {
     // Fehlerbehandlung
     console.error("Fehler beim Erstellen der Playlist:", error);
