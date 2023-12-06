@@ -303,7 +303,7 @@ app.get("/google/callback", async (req, res) => {
       queryCount++;
     }
 
-    res.redirect("https://spotibuddy.vercel.app/confirm");
+    res.redirect("https://spotibuddy.vercel.app/playlist/confirm");
   } catch (error) {
     // Fehlerbehandlung
     console.error("Fehler beim Erstellen der Playlist:", error);
