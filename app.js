@@ -98,14 +98,16 @@ app.get("/callback", (req, res) => {
 
         res.cookie("access_token", access_token, {
           httpOnly: true,
-          // secure: true, //  für lokale Entwicklung über HTTP
+          secure: true,
           maxAge: expires_in * 1000,
+          sameSite: "None",
         });
 
         res.cookie("refresh_token", refresh_token, {
           httpOnly: true,
-          // secure: true, // für lokale Entwicklung über HTTP
+          secure: true,
           maxAge: expires_in * 1000,
+          sameSite: "None",
         });
         res.redirect(redirectUrl);
       } else res.send(response);
