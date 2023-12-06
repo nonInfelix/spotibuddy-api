@@ -146,7 +146,7 @@ app.get("/user-playlists", (req, res) => {
   }
 
   axios
-    .get("https://api.spotify.com/v1/me/playlists?offset=50&limit=50", {
+    .get("https://api.spotify.com/v1/me/playlists?offset=0&limit=50", {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
