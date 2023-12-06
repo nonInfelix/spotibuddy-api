@@ -13,7 +13,7 @@ const { google } = require("googleapis");
 //-----------------------
 app.use(cookieParser()); // express kann nun mit cookies umgehen
 app.use(express.static(__dirname + "/public")); // serve static files in public
-app.use(cors({ origin: "http://localhost:4200", credentials: true })); // enable cors
+app.use(cors({ origin: "https://spotibuddy.vercel.app", credentials: true })); // enable cors
 //-------------// später origin = domain //---------------//
 
 const axios = require("axios"); // for easier api requests
