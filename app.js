@@ -42,17 +42,6 @@ const YT_CLIENT_ID = process.env.YT_CLIENT_ID;
 const YT_CLIENT_SECRET = process.env.YT_CLIENT_SECRET;
 const YT_REDIRECT_URI = process.env.YT_REDIRECT_URI;
 
-//------------LOG----------------------------
-console.log(
-  "Port: ",
-  PORT,
-  "client: ",
-  CLIENT_ID,
-  "secret: ",
-  CLIENT_SECRET,
-  "redirect: ",
-  REDIRECT_URI
-);
 //----------PATHES---------------------------------
 app.get("/", (req, res) => {
   res.send("This is my spotify API");
