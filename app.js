@@ -48,7 +48,7 @@ app.get("/", (req, res) => {
 });
 //--------------SPOTIFY LOGIN----------------------
 app.get("/auth", (req, res) => {
-  res.redirect(`http://localhost:${PORT}/login`);
+  res.redirect(`https://spotibuddy.onrender.com/login`);
 });
 
 app.get("/login", (req, res) => {
@@ -94,7 +94,7 @@ app.get("/callback", (req, res) => {
         console.log(response.data);
         //------------GET SINGLE TOKENS-------
         const { access_token, refresh_token, expires_in } = response.data;
-        const redirectUrl = "http://localhost:4200/playlist?log=1";
+        const redirectUrl = "https://spotibuddy.vercel.app/playlist?log=1";
 
         res.cookie("access_token", access_token, {
           httpOnly: true,
@@ -301,7 +301,7 @@ app.get("/google/callback", async (req, res) => {
       queryCount++;
     }
 
-    res.redirect("http://localhost:4200/confirm");
+    res.redirect("https://spotibuddy.vercel.app/confirm");
   } catch (error) {
     // Fehlerbehandlung
     console.error("Fehler beim Erstellen der Playlist:", error);
