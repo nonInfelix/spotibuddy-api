@@ -244,7 +244,7 @@ app.get("/google-auth", (req, res) => {
 
 app.get("/google/callback", async (req, res) => {
   //Limit für Suchanfragen( wg. Kontingente)
-  let queryLimit = 2;
+  let queryLimit = 20;
   let queryCount = 0;
   try {
     const code = req.query.code;
