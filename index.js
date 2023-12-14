@@ -48,7 +48,7 @@ app.get("/", (req, res) => {
 });
 //--------------SPOTIFY LOGIN----------------------
 app.get("/auth", (req, res) => {
-  res.redirect(`https://spotibuddy.onrender.com/login`);
+  res.redirect(`https://spotibuddy-api.vercel.app/login`);
 });
 
 app.get("/login", (req, res) => {
