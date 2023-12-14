@@ -13,7 +13,7 @@ const { google } = require("googleapis");
 //-----------------------
 app.use(cookieParser()); // express kann nun mit cookies umgehen
 app.use(express.static(__dirname + "/public")); // serve static files in public
-app.use(cors({ origin: "https://spotibuddy.vercel.app", credentials: true })); // enable cors
+app.use(cors({ origin: "http://localhost:4200", credentials: true })); // enable cors
 //-------------// später origin = domain //---------------//
 
 const axios = require("axios"); // for easier api requests
@@ -48,7 +48,7 @@ app.get("/", (req, res) => {
 });
 //--------------SPOTIFY LOGIN----------------------
 app.get("/auth", (req, res) => {
-  res.redirect(`https://spotibuddy-api.vercel.app/login`);
+  res.redirect(`http://localhost:${PORT}/login`);
 });
 
 app.get("/login", (req, res) => {
@@ -94,7 +94,7 @@ app.get("/callback", (req, res) => {
         console.log(response.data);
         //------------GET SINGLE TOKENS-------
         const { access_token, refresh_token, expires_in } = response.data;
-        const redirectUrl = "https://spotibuddy.vercel.app/playlist?log=1";
+        const redirectUrl = "http://localhost:4200/playlist?log=1";
 
         res.cookie("access_token", access_token, {
           httpOnly: true,
@@ -303,7 +303,7 @@ app.get("/google/callback", async (req, res) => {
       queryCount++;
     }
 
-    res.redirect("https://spotibuddy.vercel.app/playlist/confirm");
+    res.redirect("http://localhost:4200/playlist/confirm");
   } catch (error) {
     // Fehlerbehandlung
     console.error("Fehler beim Erstellen der Playlist:", error);
