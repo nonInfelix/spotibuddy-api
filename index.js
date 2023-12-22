@@ -41,6 +41,7 @@ const REDIRECT_URI = process.env.REDIRECT_URI;
 const YT_CLIENT_ID = process.env.YT_CLIENT_ID;
 const YT_CLIENT_SECRET = process.env.YT_CLIENT_SECRET;
 const YT_REDIRECT_URI = process.env.YT_REDIRECT_URI;
+const LIMIT = process.env.LIMIT;
 
 //----------PATHES---------------------------------
 app.get("/", (req, res) => {
@@ -91,25 +92,17 @@ app.get("/callback", (req, res) => {
   })
     .then((response) => {
       if (response.status == 200) {
-        console.log(response.data);
         //------------GET SINGLE TOKENS-------
         const { access_token, refresh_token, expires_in } = response.data;
-        const redirectUrl = "http://localhost:4200/playlist?log=1";
 
-        res.cookie("access_token", access_token, {
-          httpOnly: true,
-          secure: true,
-          maxAge: expires_in * 1000,
-          sameSite: "None",
+        const queryParams = querystring.stringify({
+          access_token: access_token,
+          refresh_token: refresh_token,
+          maxAge: expires_in,
         });
 
-        res.cookie("refresh_token", refresh_token, {
-          httpOnly: true,
-          secure: true,
-          maxAge: expires_in * 1000,
-          sameSite: "None",
-        });
-        res.redirect(redirectUrl);
+        const redirectUrl = `http://localhost:4200/playlist?log=1&${queryParams}`;
+        res.redirect(redirectUrl); // Weiterleitung mit den Query-Parametern
       } else res.send(response);
     })
     .catch((error) => res.send(error));
@@ -244,7 +237,7 @@ app.get("/google-auth", (req, res) => {
 
 app.get("/google/callback", async (req, res) => {
   //Limit für Suchanfragen( wg. Kontingente)
-  let queryLimit = 20;
+  let queryLimit = LIMIT;
   let queryCount = 0;
   try {
     const code = req.query.code;
